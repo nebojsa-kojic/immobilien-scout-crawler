@@ -13,19 +13,19 @@ import org.junit.Test;
  */
 public class AppTest {
 
-    /**
-     * Rigourous Test :-)
-     *
-     * @throws URISyntaxException
-     * @throws IOException
-     */
-    @Test
-    @Ignore
-    public void testApp() throws IOException, URISyntaxException {
-	Set<String> apartments = new HashSet<>();
-	apartments.add("87355778");
-	apartments.add("87266815");
+	/**
+	 * Rigourous Test :-)
+	 *
+	 * @throws URISyntaxException
+	 * @throws IOException
+	 */
+	@Test
+	@Ignore
+	public void testApp() throws IOException, URISyntaxException {
+		Set<String> apartments = new HashSet<>();
+		apartments.add("87355778");
+		apartments.add("87266815");
 
-	GmailSender.send(apartments);
-    }
+		GmailSender.send(apartments);
+	}
 }

@@ -25,70 +25,70 @@ import javax.mail.internet.MimeMessage;
  */
 public class GmailSender {
 
-    private static File getPropFile() {
-	String home = System.getProperties().get("user.home").toString();
+	private static File getPropFile() {
+		String home = System.getProperties().get("user.home").toString();
 
-	return new File(home, "gmail.txt");
-    }
-
-    public static void send(Set<String> newApartments) throws IOException, URISyntaxException {
-	List<String> lines = Files.readAllLines(Paths.get(getPropFile().getAbsolutePath()), Charset.forName("UTF-8"));
-
-	String from = lines.get(0).trim();
-	String pass = lines.get(1).trim();
-	String[] to = lines.get(2).trim().split(",");
-
-	String subject = "New apartments in Munich";
-
-	StringBuilder links = new StringBuilder();
-	for (String apartment : newApartments) {
-	    links.append("<a href=\"" + getApartmentUrl(apartment) + "\">" + apartment + "</a><br>");
+		return new File(home, "gmail.txt");
 	}
 
-	sendFromGMail(from, pass, to, subject, links.toString());
-    }
+	public static void send(Set<String> newApartments) throws IOException, URISyntaxException {
+		List<String> lines = Files.readAllLines(Paths.get(getPropFile().getAbsolutePath()), Charset.forName("UTF-8"));
 
-    private static void sendFromGMail(String from, String pass, String[] to, String subject, String body) {
-	Properties props = System.getProperties();
-	String host = "smtp.gmail.com";
-	props.put("mail.smtp.starttls.enable", "true");
-	props.put("mail.smtp.host", host);
-	props.put("mail.smtp.user", from);
-	props.put("mail.smtp.password", pass);
-	props.put("mail.smtp.port", "587");
-	props.put("mail.smtp.auth", "true");
+		String from = lines.get(0).trim();
+		String pass = lines.get(1).trim();
+		String[] to = lines.get(2).trim().split(",");
 
-	Session session = Session.getDefaultInstance(props);
-	MimeMessage message = new MimeMessage(session);
+		String subject = "New apartments in Munich";
 
-	try {
-	    message.setFrom(new InternetAddress(from));
-	    InternetAddress[] toAddress = new InternetAddress[to.length];
+		StringBuilder links = new StringBuilder();
+		for (String apartment : newApartments) {
+			links.append("<a href=\"" + getApartmentUrl(apartment) + "\">" + apartment + "</a><br>");
+		}
 
-	    // To get the array of addresses
-	    for (int i = 0; i < to.length; i++) {
-		toAddress[i] = new InternetAddress(to[i]);
-	    }
-
-	    for (int i = 0; i < toAddress.length; i++) {
-		message.addRecipient(Message.RecipientType.TO, toAddress[i]);
-	    }
-
-	    message.setSubject(subject);
-	    message.setText(body, "utf-8", "html");
-
-	    Transport transport = session.getTransport("smtp");
-	    transport.connect(host, from, pass);
-	    transport.sendMessage(message, message.getAllRecipients());
-	    transport.close();
-	} catch (AddressException ae) {
-	    ae.printStackTrace();
-	} catch (MessagingException me) {
-	    me.printStackTrace();
+		sendFromGMail(from, pass, to, subject, links.toString());
 	}
-    }
 
-    private static String getApartmentUrl(String apartmentId) {
-	return App.WEBSITE_ROOT + "/expose/" + apartmentId;
-    }
+	private static void sendFromGMail(String from, String pass, String[] to, String subject, String body) {
+		Properties props = System.getProperties();
+		String host = "smtp.gmail.com";
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.user", from);
+		props.put("mail.smtp.password", pass);
+		props.put("mail.smtp.port", "587");
+		props.put("mail.smtp.auth", "true");
+
+		Session session = Session.getDefaultInstance(props);
+		MimeMessage message = new MimeMessage(session);
+
+		try {
+			message.setFrom(new InternetAddress(from));
+			InternetAddress[] toAddress = new InternetAddress[to.length];
+
+			// To get the array of addresses
+			for (int i = 0; i < to.length; i++) {
+				toAddress[i] = new InternetAddress(to[i]);
+			}
+
+			for (int i = 0; i < toAddress.length; i++) {
+				message.addRecipient(Message.RecipientType.TO, toAddress[i]);
+			}
+
+			message.setSubject(subject);
+			message.setText(body, "utf-8", "html");
+
+			Transport transport = session.getTransport("smtp");
+			transport.connect(host, from, pass);
+			transport.sendMessage(message, message.getAllRecipients());
+			transport.close();
+		} catch (AddressException ae) {
+			ae.printStackTrace();
+		} catch (MessagingException me) {
+			me.printStackTrace();
+		}
+	}
+
+	private static String getApartmentUrl(String apartmentId) {
+		return App.WEBSITE_ROOT + "/expose/" + apartmentId;
+	}
 }
