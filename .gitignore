@@ -1,0 +1,14 @@
+# Other
+.metadata
+
+# Eclipse Core
+.project
+.classpath
+.tern-project
+.settings/
+
+# Vagrant
+.vagrant
+
+# Maven
+/target/
