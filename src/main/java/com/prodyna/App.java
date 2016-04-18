@@ -3,7 +3,7 @@ package com.prodyna;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,7 +19,7 @@ import org.jsoup.select.Elements;
  */
 public class App {
 
-	private static Set<String> oldApartments = new HashSet<>();
+	private static Set<Apartment> oldApartments = new HashSet<>();
 
 	public static String WEBSITE_ROOT = "https://www.immobilienscout24.de";
 
@@ -36,6 +36,10 @@ public class App {
 	private static String PRICE_MAX = "900";
 
 	private static String FREQUENCY = "10";
+
+	private static boolean TRAVEL_TIME = true;
+
+	private static String DESTINATION = "place_id:ChIJAZZ5YDV8nkcRJ29QgCLx0eQ";
 
 	public static void main(String[] args) {
 
@@ -63,7 +67,19 @@ public class App {
 
 				System.out.print("How often do I run (minutes): ");
 				FREQUENCY = reader.readLine();
+
+				System.out.print("Enable travel time calculations? Y/n: ");
+				String distance = reader.readLine();
+				if (distance.equalsIgnoreCase("n")) {
+					TRAVEL_TIME = false;
+				}
 			}
+
+			if(TRAVEL_TIME){
+				System.out.print("Calculate travel time to : ");
+				DESTINATION = reader.readLine();
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -77,6 +93,12 @@ public class App {
 		System.out.println("Min price: " + PRICE_MIN);
 		System.out.println("Max price: " + PRICE_MAX);
 
+		System.out.println("Travel time enabled: " + TRAVEL_TIME);
+
+		if(TRAVEL_TIME){
+			System.out.println("Calculate travel time to: " + DESTINATION);
+		}
+
 		System.out.println("I will run every " + FREQUENCY + " minutes.");
 
 		startRunner();
@@ -89,29 +111,30 @@ public class App {
 			public void run() {
 				while (true) {
 					try {
-						System.out.println("Working...");
+						System.out.println(new Date().toString() + " Working...");
 
 						String rootUrl = constructUrl();
 						Document doc = Jsoup.connect(rootUrl).get();
 						int noPages = getNoPages(doc);
 
-						Set<String> newApartments = new HashSet<>();
+						Set<Apartment> newApartments = new HashSet<>();
 						for (int i = 1; i <= noPages; i++) {
 							if (i == 1) {
-								Set<String> firstPageResults = processPage(doc);
+								Set<Apartment> firstPageResults = processPage(doc);
 								newApartments.addAll(firstPageResults);
 							} else {
 								String pageUrl = rootUrl.replace("S-T/", "S-T/P-" + i + "/");
-								Set<String> nthPageResults = processPage(pageUrl);
+								Set<Apartment> nthPageResults = processPage(pageUrl);
 								newApartments.addAll(nthPageResults);
 							}
 						}
 
 						if (!oldApartments.isEmpty()) {
-							Set<String> diff = new HashSet<>();
+							Set<Apartment> diff = new HashSet<>();
 
-							for (String newApartment : newApartments) {
+							for (Apartment newApartment : newApartments) {
 								if (!oldApartments.contains(newApartment)) {
+									newApartment.setTravelTime(TravelTimeService.getTravelTime(newApartment.getAddress(), DESTINATION));
 									diff.add(newApartment);
 								}
 							}
@@ -123,9 +146,10 @@ public class App {
 
 						oldApartments = newApartments;
 
+
 						int milis = 1000 * 60 * Integer.valueOf(FREQUENCY);
 						Thread.sleep(milis);
-					} catch (InterruptedException | IOException | URISyntaxException e) {
+					} catch (InterruptedException | IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -148,8 +172,8 @@ public class App {
 		return selects.get(0).getElementsByTag("option").size();
 	}
 
-	public static Set<String> processPage(Document doc) throws IOException {
-		Set<String> results = new HashSet<>();
+	public static Set<Apartment> processPage(Document doc) throws IOException {
+		Set<Apartment> results = new HashSet<>();
 
 		Element ul = doc.getElementById("resultListItems");
 
@@ -161,17 +185,29 @@ public class App {
 				continue;
 			}
 
+			String apartmentId = "";
+
 			Elements articleElements = li.getElementsByAttributeStarting("data-obid");
 			for (Element article : articleElements) {
-				String apartmentId = article.attr("data-obid");
-				results.add(apartmentId);
+				apartmentId = article.attr("data-obid");
 			}
+
+			Apartment  apartment = new Apartment(apartmentId);
+
+			if (TRAVEL_TIME){
+				Elements addressElem = li.getElementsByAttributeValueContaining("class", "result-list-entry__address");
+				String startLocation = addressElem.first().child(0).ownText();
+				apartment.setAddress(startLocation);
+			}
+
+			results.add(apartment);
+
 		}
 
 		return results;
 	}
 
-	public static Set<String> processPage(String url) throws IOException {
+	public static Set<Apartment> processPage(String url) throws IOException {
 		Document doc = Jsoup.connect(url).get();
 		return processPage(doc);
 	}

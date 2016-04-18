@@ -1,12 +1,5 @@
 package com.prodyna;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -25,24 +18,17 @@ import javax.mail.internet.MimeMessage;
  */
 public class GmailSender {
 
-	private static File getPropFile() {
-		String home = System.getProperties().get("user.home").toString();
+	public static void send(Set<Apartment> newApartments) {
 
-		return new File(home, "gmail.txt");
-	}
-
-	public static void send(Set<String> newApartments) throws IOException, URISyntaxException {
-		List<String> lines = Files.readAllLines(Paths.get(getPropFile().getAbsolutePath()), Charset.forName("UTF-8"));
-
-		String from = lines.get(0).trim();
-		String pass = lines.get(1).trim();
-		String[] to = lines.get(2).trim().split(",");
+		String from = PropertiesUtil.getPropFromFile(1);
+		String pass = PropertiesUtil.getPropFromFile(2);
+		String[] to = PropertiesUtil.getPropFromFile(3).split(",");
 
 		String subject = "New apartments in Munich";
 
 		StringBuilder links = new StringBuilder();
-		for (String apartment : newApartments) {
-			links.append("<a href=\"" + getApartmentUrl(apartment) + "\">" + apartment + "</a><br>");
+		for (Apartment apartment : newApartments) {
+			links.append("<a href=\"" + getApartmentUrl(apartment.getId()) + "\">" + apartment.getId() + "</a> travel duration: " + apartment.getTravelTime() + " <br>");
 		}
 
 		sendFromGMail(from, pass, to, subject, links.toString());

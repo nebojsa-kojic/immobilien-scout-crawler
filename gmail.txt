@@ -1,3 +1,4 @@
 tom.jones@gmail.com
 tomjones_Has_cool_pass_123
 tom.jones@gmail.com,alice@gmail.com,tobias76@gmail.com
+personal_google_directions_api_key

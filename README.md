@@ -14,6 +14,10 @@ gmail password of the user sending e-mail
 comma separated list of receivers
 Example of such gmail.txt file content may be found in the root folder of the project. All you have to do is copy it to your ~user folder and adapt it.
 
+Setup for Travel time calculation (eg. between your job and your new apartment):
+Get Key for Google Maps Directions API (https://developers.google.com/maps/documentation/directions/).
+Add API Key at the bottom of gmail.txt file (4th place).
+
 Building the application:
 [command line] Position in the project's root folder, where the .pom file is found, and type "mvn clean install" - this will build the application and generate the .jar artifact under /target folder.
 
